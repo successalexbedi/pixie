@@ -1,0 +1,30 @@
+[package]
+name = "pixie-app"
+version = "0.1.0"
+edition = "2021"
+
+[lib]
+crate-type = ["cdylib", "rlib"]
+
+[[bin]]
+name = "pixie-app"
+path = "src/main.rs"
+
+[dependencies]
+pixie-engine = { path = "../pixie-engine" }
+pixie-node = { path = "../pixie-node" }
+pixie-style = { path = "../pixie-style" }
+log = "0.4"
+env_logger = "0.11"
+
+[target.'cfg(target_os = "android")'.dependencies]
+winit = { version = "0.30", features = ["android-native-activity"] }
+android_logger = "0.13"
+
+[package.metadata.android]
+package = "com.pixie.app"
+label = "Pixie"
+version_code = 1
+version_name = "0.1"
+target_sdk_version = 33
+min_sdk_version = 26

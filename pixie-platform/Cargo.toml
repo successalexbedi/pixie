@@ -1,0 +1,7 @@
+[package]
+name = "pixie-platform"
+version = "0.1.0"
+edition = "2021"
+
+[target.'cfg(target_os = "android")'.dependencies]
+jni = "0.21"

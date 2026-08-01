@@ -1,0 +1,12 @@
+[workspace]
+members = [
+    "pixie-style",
+    "pixie-node",
+    "pixie-engine",
+    "pixie-platform",
+    "pixie-app",
+]
+resolver = "2"
+
+[profile.release]
+panic = "abort"
