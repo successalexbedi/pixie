@@ -1,34 +1,56 @@
 use pixie_engine::window::PixieApp;
-use pixie_node::{div, h1, PixelNode};
-use pixie_style::{Style, Color, Display, FlexDirection, Sides, px};
+use pixie_node::{div, header, h1, h3, p, button, badge, card, PixelNode};
+use pixie_node::stylesheet::{background, target};
+use pixie_style::{Style, Color, Display, FlexDirection, AlignItems, Sides, px};
 use std::panic::AssertUnwindSafe;
 
 pub struct DemoApp;
 
+fn page_style(width: f32, height: f32) -> Style {
+    let mut s = Style::default();
+    s.structural.display = Display::Flex;
+    s.structural.flex_direction = FlexDirection::Column;
+    s.structural.width = px(width);
+    s.structural.height = px(height);
+    s.structural.padding = Sides::all(px(24.0));
+    s.structural.row_gap = px(20.0);
+    s
+}
+
+fn row_style(gap: f32) -> Style {
+    let mut s = Style::default();
+    s.structural.flex_direction = FlexDirection::Row;
+    s.structural.align_items = AlignItems::Center;
+    s.structural.column_gap = px(gap);
+    s
+}
+
 impl PixieApp for DemoApp {
     fn build(&mut self, width: u32, height: u32) -> PixelNode {
-        let mut root_style = Style::default();
-        root_style.structural.display = Display::Flex;
-        root_style.structural.flex_direction = FlexDirection::Column;
-        root_style.structural.width = px(width as f32);
-        root_style.structural.height = px(height as f32);
-        root_style.structural.padding = Sides::all(px(24.0));
-        root_style.structural.row_gap = px(16.0);
-        root_style.paint.background = Color::rgb(20, 20, 40);
-
-        let mut text_style = Style::default();
-        text_style.structural.font_size = 32.0;
-        text_style.paint.color = Color::rgb(255, 255, 255);
-
-        let mut box_a = Style::default();
-        box_a.structural.width = px(300.0);
-        box_a.structural.height = px(80.0);
-        box_a.paint.background = Color::hex("#3366ff").unwrap();
-
-        div().style(root_style).child((
-            h1("Hello, Pixie!").style(text_style),
-            div().style(box_a),
-        ))
+        div()
+            .style(page_style(width as f32, height as f32))
+            .child((
+                header().ref_id("header").child(h1("Pixie Design Playground").ref_id("title")),
+                div().ref_id("hero").child(p("Edit this file, save, and see it update — this is your canvas now.").ref_id("hero-text")),
+                div().style(row_style(16.0)).child((
+                    card().ref_id("card-1").child((h3("Fast").ref_id("card-1-title"), p("Real taffy layout, real cosmic-text shaping.").ref_id("card-1-body"))),
+                    card().ref_id("card-2").child((h3("Typed").ref_id("card-2-title"), p("Styles are Rust structs, not strings.").ref_id("card-2-body"))),
+                )),
+                div().style(row_style(12.0)).child((
+                    button("Get Started").ref_id("cta"),
+                    badge("v0.1").ref_id("version-badge"),
+                )),
+            ))
+            .stylesheet((
+                background(Color::rgb(245, 246, 250)),
+                target("header").background(Color::rgb(255, 255, 255)).padding(16.0),
+                target("title").font_size(28.0).color(Color::hex("#1a1a2e").unwrap()),
+                target("hero-text").color(Color::rgb(90, 90, 100)).font_size(16.0),
+                target("card-1").background(Color::rgb(255, 255, 255)).radius(12.0).padding(16.0),
+                target("card-2").background(Color::rgb(255, 255, 255)).radius(12.0).padding(16.0),
+                target("cta").background(Color::hex("#3366ff").unwrap()).color(Color::rgb(255, 255, 255)).radius(8.0).padding(12.0),
+                target("version-badge").background(Color::rgb(230, 230, 235)).color(Color::rgb(100, 100, 110)),
+            ))
     }
 }
 
@@ -61,10 +83,6 @@ pub extern "C" fn android_main(app: winit::platform::android::activity::AndroidA
 
     log::info!("PIXIE: android_main starting");
 
-    // The real fix: a panic crossing an un-caught FFI boundary is
-    // undefined behavior, not just "the app crashes." catch_unwind
-    // guarantees the panic dies HERE, inside safe Rust, never
-    // touching the C caller's stack at all.
     let result = std::panic::catch_unwind(AssertUnwindSafe(|| {
         pixie_engine::window::run_android(DemoApp, app);
     }));

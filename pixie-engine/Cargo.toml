@@ -6,7 +6,7 @@ edition = "2021"
 [dependencies]
 taffy = "0.7"
 cosmic-text = "0.12"
-wgpu = "24"
+wgpu = "29"
 winit = "0.30"
 pollster = "0.3"
 bytemuck = { version = "1", features = ["derive"] }

@@ -1,4 +1,4 @@
-use wgpu::{Instance, InstanceDescriptor, DeviceDescriptor, RequestAdapterOptions};
+use wgpu::{DeviceDescriptor, RequestAdapterOptions};
 
 pub struct GpuContext {
     pub device: wgpu::Device,
@@ -7,8 +7,7 @@ pub struct GpuContext {
 }
 
 impl GpuContext {
-    pub async fn new(surface: &wgpu::Surface<'_>) -> GpuContext {
-        let instance = Instance::new(&InstanceDescriptor::default());
+    pub async fn new(instance: &wgpu::Instance, surface: &wgpu::Surface<'_>) -> GpuContext {
         let adapter = instance
             .request_adapter(&RequestAdapterOptions {
                 power_preference: wgpu::PowerPreference::default(),
@@ -19,7 +18,14 @@ impl GpuContext {
             .expect("no compatible GPU adapter found");
 
         let (device, queue) = adapter
-            .request_device(&DeviceDescriptor::default(), None)
+            .request_device(&DeviceDescriptor {
+                label: None,
+                required_features: wgpu::Features::empty(),
+                required_limits: adapter.limits(),
+                memory_hints: wgpu::MemoryHints::default(),
+                experimental_features: wgpu::ExperimentalFeatures::default(),
+                trace: wgpu::Trace::Off,
+            })
             .await
             .expect("failed to create GPU device");
 

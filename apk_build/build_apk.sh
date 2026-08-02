@@ -3,7 +3,7 @@ set -e
 
 cargo build --release -p pixie-app
 mkdir -p apk_build/lib/arm64-v8a
-cp target/release/libpixie_app.so apk_build/lib/arm64-v8a/
+cp /data/data/org.smartide.code/files/home/projects/pixie/pixie/target/aarch64-linux-android/release/libpixie_app.so apk_build/lib/arm64-v8a/
 
 cd apk_build
 aapt package -f -M AndroidManifest.xml -I android.jar -F pixie-unsigned.apk

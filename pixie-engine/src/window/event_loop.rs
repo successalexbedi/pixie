@@ -86,7 +86,10 @@ impl<T: PixieApp> ApplicationHandler for App<T> {
         // rebuilt every resume, since it's the piece tied to a
         // specific native window that Android can swap out.
         if self.instance.is_none() {
-            self.instance = Some(wgpu::Instance::new(&wgpu::InstanceDescriptor::default()));
+            self.instance = Some(wgpu::Instance::new(wgpu::InstanceDescriptor {
+                backends: wgpu::Backends::GL,
+                ..wgpu::InstanceDescriptor::new_without_display_handle()
+            }));
         }
         let instance = self.instance.as_ref().unwrap();
 
@@ -98,7 +101,7 @@ impl<T: PixieApp> ApplicationHandler for App<T> {
         // needs a compatible surface just to pick hardware, it
         // doesn't tie the Device itself to that specific surface.
         if self.gpu.is_none() {
-            self.gpu = Some(pollster::block_on(GpuContext::new(&surface)));
+            self.gpu = Some(pollster::block_on(GpuContext::new(instance, &surface)));
         }
         let gpu = self.gpu.as_ref().unwrap();
 
@@ -156,17 +159,20 @@ impl<T: PixieApp> ApplicationHandler for App<T> {
                     // this frame instead of crashing — the next
                     // resumed() will rebuild it properly.
                     let frame = match surface.get_current_texture() {
-                        Ok(f) => f,
-                        Err(_) => return,
+                        wgpu::CurrentSurfaceTexture::Success(f) => f,
+                        wgpu::CurrentSurfaceTexture::Suboptimal(f) => f,
+                        _ => return,
                     };
                     let view = frame.texture.create_view(&wgpu::TextureViewDescriptor::default());
                     let mut encoder = gpu.device.create_command_encoder(&wgpu::CommandEncoderDescriptor::default());
                     {
                         let mut pass = encoder.begin_render_pass(&wgpu::RenderPassDescriptor {
                             label: Some("pixie pass"),
+                            multiview_mask: None,
                             color_attachments: &[Some(wgpu::RenderPassColorAttachment {
                                 view: &view,
                                 resolve_target: None,
+                                depth_slice: None,
                                 ops: wgpu::Operations {
                                     load: wgpu::LoadOp::Clear(wgpu::Color { r: 0.02, g: 0.05, b: 0.2, a: 1.0 }),
                                     store: wgpu::StoreOp::Store,
